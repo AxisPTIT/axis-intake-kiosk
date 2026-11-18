@@ -1,0 +1,145 @@
+/* Axis PT Intake Kiosk — styles
+   Brand taken from axisptutah.com (Nov 18, 2026): gold #C9A84C, near-black #1A1A1A,
+   warm gray-brown #666050, cream backgrounds, Cormorant Garamond headings + Jost body.
+   Primary buttons use dark text on gold: white-on-gold (the website style) is too
+   low-contrast for a patient kiosk. */
+:root {
+  --brand: #c9a84c;        /* Axis gold */
+  --brand-dark: #a88a35;   /* pressed gold */
+  --brand-ink: #1a1a1a;    /* text on gold */
+  --accent: #4a4030;       /* deep brown */
+  --bg: #faf6e8;           /* cream */
+  --card: #ffffff;
+  --line: #e8dfc4;
+  --text: #1a1a1a;
+  --muted: #666050;
+  --danger: #a3271b;
+  --radius: 6px;
+  --base: 20px;
+  --font: Jost, "Helvetica Neue", Arial, sans-serif;
+  --display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+}
+h1, h2 { font-family: var(--display); font-weight: 500; letter-spacing: .01em; }
+h1 em { color: var(--brand); }
+html.large { --base: 24px; }
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body { font: var(--base)/1.45 var(--font); color: var(--text); background: var(--bg);
+  user-select: none; -webkit-user-select: none; overscroll-behavior: none; }
+input { user-select: text; -webkit-user-select: text; }
+h1 { font-size: 2.6em; margin: .2em 0; color: var(--text); line-height: 1.1; }
+h2 { font-size: 1.5em; margin: .3em 0; }
+h3 { font-size: 1.1em; margin: 0 0 .6em; }
+.muted { color: var(--muted); font-weight: normal; font-size: .9em; }
+.error { color: var(--danger); min-height: 1.4em; margin: .4em 0; }
+.ok { color: var(--accent); min-height: 1.2em; margin: .4em 0 0; font-size: .9em; }
+.hidden { display: none !important; }
+
+/* Screens */
+.screen { position: fixed; inset: 0; display: none; flex-direction: column;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+.screen.active { display: flex; animation: fade .2s ease; }
+@keyframes fade { from { opacity: 0 } to { opacity: 1 } }
+.center { margin: auto; text-align: center; padding: 2rem; max-width: 760px; }
+.center.narrow { max-width: 420px; }
+.lead { font-size: 1.2em; color: var(--muted); }
+.stack { display: flex; flex-direction: column; gap: 1rem; align-items: center; margin-top: 2rem; }
+/* Website logo PNG is a 2000x2000 square with transparent padding; this box crops to the wordmark. */
+.logo-lg { width: min(420px, 70vw); aspect-ratio: 2.83; object-fit: cover; object-position: center; margin-bottom: 1rem; }
+.logo-sm { height: 44px; aspect-ratio: 2.83; object-fit: cover; object-position: center; }
+
+/* Header / footer bars */
+.bar { display: flex; align-items: center; gap: 1rem; padding: .8rem 1.2rem; background: var(--card);
+  border-bottom: 1px solid var(--line); min-height: 72px; }
+.bar > span { font-weight: 600; flex: 1; }
+.bar .title { flex: 1; display: flex; flex-direction: column; line-height: 1.2; }
+.bar .step { font-size: .75em; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.actions { padding: 1rem 1.2rem; background: var(--card); border-top: 1px solid var(--line); display: flex; justify-content: center; }
+.actions.split { justify-content: space-between; gap: 1rem; }
+.scroll { flex: 1; overflow-y: auto; padding: 1.2rem; -webkit-overflow-scrolling: touch; }
+
+/* Buttons — every target >= 56px tall */
+.btn { font: inherit; border: 2px solid transparent; border-radius: var(--radius); letter-spacing: .04em; padding: .7em 1.4em;
+  min-height: 56px; min-width: 56px; cursor: pointer; font-weight: 600; touch-action: manipulation; }
+.btn:active { transform: scale(.97); }
+.btn:focus-visible { outline: 4px solid #ffbf47; outline-offset: 2px; }
+.btn.primary { background: var(--brand); color: var(--brand-ink); }
+.btn.primary:active { background: var(--brand-dark); }
+.btn.secondary { background: #f5f0e0; color: var(--accent); border-color: var(--line); }
+.btn.ghost { background: transparent; color: var(--accent); border-color: #d8cba3; }
+.btn.big { font-size: 1.15em; padding: .8em 2em; min-height: 68px; }
+.btn.small { min-height: 48px; padding: .3em 1em; font-size: .85em; }
+.btn[disabled] { opacity: .45; }
+.staff-link { position: absolute; right: 1rem; bottom: 1rem; background: none; border: none;
+  color: #a39b85; font: inherit; font-size: .8em; padding: 1rem; min-height: 56px; }
+
+/* Cards / inputs */
+.card { background: var(--card); border-radius: var(--radius); padding: 1.2rem 1.4rem; margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(74,64,48,.08); border: 1px solid var(--line); max-width: 900px; margin-left: auto; margin-right: auto; }
+.row { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; }
+.row > * { flex: 1 1 260px; }
+label { display: flex; flex-direction: column; font-size: .85em; color: var(--muted); gap: .3em; }
+input { font: inherit; font-size: 1.1em; padding: .6em .8em; border: 2px solid #d8cba3; border-radius: var(--radius);
+  min-height: 56px; color: var(--text); background: #fff; }
+input:focus { border-color: var(--brand); outline: none; }
+.checklist label { flex-direction: row; align-items: center; gap: .8em; color: var(--text); font-size: 1em;
+  padding: .7em .4em; border-bottom: 1px solid #f1ead6; min-height: 60px; }
+.checklist input[type=checkbox] { width: 32px; height: 32px; min-height: 0; accent-color: var(--accent); }
+.checklist .muted { margin-left: auto; white-space: nowrap; }
+.checklist .ftitle { display: flex; flex-direction: column; }
+.checklist .ftitle small { color: var(--muted); font-size: .75em; }
+.checklist .price { padding: .2em 0 .8em 3.2em; }
+.checklist .price label { border: 0; min-height: 0; padding: 0; flex-direction: column; align-items: stretch; max-width: 320px; }
+
+/* PIN keypad */
+.pin-dots { display: flex; gap: 14px; justify-content: center; margin: 1rem 0; min-height: 24px; }
+.pin-dots span { width: 20px; height: 20px; border-radius: 50%; background: var(--accent); }
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 1rem 0 1.5rem; }
+.keypad button { font: inherit; font-size: 1.4em; min-height: 76px; border-radius: var(--radius); border: 1px solid var(--line);
+  background: var(--card); touch-action: manipulation; }
+.keypad button:active { background: #f5f0e0; }
+
+/* Form step */
+.progress { height: 8px; background: #efe7cf; }
+.progress div { height: 100%; width: 0; background: var(--brand); transition: width .3s; }
+.hint { margin: 0; padding: .7rem 1.2rem; background: #f5f0e0; border-bottom: 1px solid var(--line); font-size: .9em; }
+.frame-wrap { position: relative; flex: 1; background: #fff; }
+.frame-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; background: #fff; z-index: 1; text-align: center; padding: 2rem; }
+.spinner { width: 54px; height: 54px; border: 6px solid #efe7cf; border-top-color: var(--brand);
+  border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Scanner */
+.scanner { margin-top: 1rem; text-align: center; }
+.scanner video { width: 100%; max-width: 480px; border-radius: 12px; background: #000; display: block; margin: 0 auto .8rem; }
+
+.step-pill { color: var(--muted); letter-spacing: .12em; text-transform: uppercase; font-size: .75em; margin: 0; }
+
+/* Done */
+.check { width: 120px; height: 120px; margin: 0 auto 1rem; border-radius: 50%; background: var(--brand);
+  color: var(--brand-ink); font-size: 70px; line-height: 120px; }
+.summary { list-style: none; padding: 0; margin: 0 0 1rem; }
+.summary li { display: flex; justify-content: space-between; padding: .7em 0; border-bottom: 1px solid #f1ead6; }
+.tag { font-size: .8em; padding: .2em .8em; border-radius: 999px; font-weight: 600; }
+.tag.done { background: #ddf3ef; color: #1d6f64; }
+.tag.skipped { background: #fde8e6; color: var(--danger); }
+.tag.pending { background: #f5f0e0; color: var(--muted); }
+
+/* Modal / banner */
+.modal { position: fixed; inset: 0; background: rgba(26,26,26,.55); display: flex; align-items: center;
+  justify-content: center; z-index: 50; padding: 1.5rem; }
+.modal-box { background: #fff; border-radius: var(--radius); border-top: 6px solid var(--brand); padding: 2rem; max-width: 560px; width: 100%; }
+.modal-actions { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; flex-wrap: wrap; }
+.banner { position: fixed; top: 0; left: 0; right: 0; z-index: 60; background: var(--danger); color: #fff;
+  text-align: center; padding: .6rem; font-weight: 600; }
+
+/* Phones / portrait narrow */
+@media (max-width: 640px) {
+  :root { --base: 18px; }
+  .actions.split { flex-direction: column-reverse; }
+  .actions.split .btn { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
