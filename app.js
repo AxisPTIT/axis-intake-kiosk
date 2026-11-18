@@ -7,7 +7,7 @@
   "use strict";
   const C = window.KIOSK_CONFIG;
   // Defaults guard against a stale cached config.js missing newer settings.
-  const T = Object.assign({ patientQuestionSec: 60, patientLockSec: 120, formQuestionSec: 300, staffResetSec: 120,
+  const T = Object.assign({ patientQuestionSec: 200, patientLockSec: 320, formQuestionSec: 200, staffResetSec: 120,
     lockAutoResetMin: 30, doneAutoResetSec: 90, iframeLoadSec: 20 }, C.timeouts || {});
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));

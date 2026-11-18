@@ -51,10 +51,10 @@ window.KIOSK_CONFIG = {
   webpt: { enabled: true, position: "first", allowedHosts: ["webpt.com"] },
 
   timeouts: {
-    patientQuestionSec: 60,    // no touch for 60 s on a patient screen -> "Are you still there?"
-    patientLockSec: 120,       // still no touch at 120 s -> tablet pauses; staff unlock with PIN to continue
-    formQuestionSec: 300,      // on a Microsoft Form page (touches inside the form can't be detected), ask after 5 min;
-                               // it then pauses 60 s later, like other patient screens
+    patientQuestionSec: 200,   // no touch for 200 s on a patient screen -> "Are you still there?"
+    patientLockSec: 320,       // no answer 120 s after the question -> tablet pauses; staff unlock with PIN to continue
+    formQuestionSec: 200,      // same 200 s on Microsoft Form pages (touches inside a form can't be seen,
+                               // so time spent typing in the form doesn't reset this); pauses 120 s later
     staffResetSec: 120,        // staff screens left alone -> back to welcome (or back to the pause screen)
     lockAutoResetMin: 30,      // a paused tablet nobody unlocks is wiped after 30 min
     doneAutoResetSec: 90,      // done screen returns to welcome

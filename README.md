@@ -23,7 +23,7 @@ It is hosted on GitHub Pages: `AxisPTIT/axis-intake-kiosk` → https://axisptit.
 5. **Done screen:** "Thank you for completing the consent forms. Please return the tablet to Axis PT staff." It auto-resets after 90 s.
 6. **Staff login → PIN → Session summary** shows each step as Done, Next tapped, Skipped, In progress, Not finished or Not reached. Tap **Clear & reset**.
 
-Inactivity: on patient screens, no touch for **60 s** shows "Are you still there?"; no touch by **120 s** pauses the tablet ("Paused for privacy, return to the front desk"). Staff log in and choose **Unlock & continue** (back to the same spot) or **Clear & reset**. On Microsoft Form pages the question waits **5 min**, because touches inside the form can't be detected. A paused tablet nobody unlocks is wiped after 30 min. All of these are in `config.js` → `timeouts`.
+Inactivity: on patient screens (including form pages), no touch for **200 s** shows "Are you still there?"; no answer within **120 s** after that pauses the tablet ("Paused for privacy, return to the front desk"). Staff log in and choose **Unlock & continue** (back to the same spot) or **Clear & reset**. Touches inside a Microsoft Form can't be detected, so a patient typing in a long form may see the question; tapping "I'm still here" carries on. A paused tablet nobody unlocks is wiped after 30 min. All of these are in `config.js` → `timeouts`.
 
 Privacy: the patient's name and progress live in page memory. During the WebPT step only, a copy is kept in that tab's sessionStorage so the patient can resume. Reset wipes it and reloads the page. Nothing goes to GitHub. While WebPT is open on top, the kiosk page's inactivity timer is paused, so it can't reset mid-intake. After that: "Are you still there?", then a reset.
 
