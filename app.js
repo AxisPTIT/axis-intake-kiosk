@@ -6,7 +6,9 @@
 (function () {
   "use strict";
   const C = window.KIOSK_CONFIG;
-  const T = C.timeouts;
+  // Defaults guard against a stale cached config.js missing newer settings.
+  const T = Object.assign({ patientQuestionSec: 60, patientLockSec: 120, formQuestionSec: 300, staffResetSec: 120,
+    lockAutoResetMin: 30, doneAutoResetSec: 90, iframeLoadSec: 20 }, C.timeouts || {});
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const PATIENT_SCREENS = ["hello", "form", "webpt"];
