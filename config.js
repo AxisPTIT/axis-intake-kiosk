@@ -42,17 +42,21 @@ window.KIOSK_CONFIG = {
   ],
 
   /* WebPT Reach kiosk-mode intake (QR/URL from the patient's Reach chart).
-     position: "first" (default) or "last" in the patient's steps. It opens on top of
-     this page; the patient comes back and taps Continue.
+     It appears as the first item in the staff form list. If checked, staff scan the
+     WebPT QR code right after setup. position: "first" (default) or "last" in the
+     patient's steps. It opens on top of this page; the patient comes back and taps Continue.
      allowedHosts: after your first real scan, put the WebPT host here
      (e.g. the domain shown in the scanned link) so random QR codes are rejected.
      Empty list = accept any https link. */
   webpt: { enabled: true, position: "first", allowedHosts: ["webpt.com"] },
 
   timeouts: {
-    idleScreenSec: 180,        // welcome / done screens with no touch -> reset
-    formStepSec: 1200,         // inside a form (touches inside the form can't be seen) -> warn
-    warningSec: 60,            // "Are you still there?" countdown
+    patientQuestionSec: 60,    // no touch for 60 s on a patient screen -> "Are you still there?"
+    patientLockSec: 120,       // still no touch at 120 s -> tablet pauses; staff unlock with PIN to continue
+    formQuestionSec: 300,      // on a Microsoft Form page (touches inside the form can't be detected), ask after 5 min;
+                               // it then pauses 60 s later, like other patient screens
+    staffResetSec: 120,        // staff screens left alone -> back to welcome (or back to the pause screen)
+    lockAutoResetMin: 30,      // a paused tablet nobody unlocks is wiped after 30 min
     doneAutoResetSec: 90,      // done screen returns to welcome
     iframeLoadSec: 20          // show "trouble loading" help after this
   }

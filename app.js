@@ -6,18 +6,20 @@
 (function () {
   "use strict";
   const C = window.KIOSK_CONFIG;
+  const T = C.timeouts;
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const PATIENT_SCREENS = ["hello", "form", "webpt"];
+  const STAFF_SCREENS = ["setup", "scan", "summary"];
 
   let S = freshState();
-  function freshState() { return { first: "", last: "", steps: [], idx: 0, webptUrl: "", status: {} }; }
+  function freshState() { return { first: "", last: "", steps: [], idx: 0, webptUrl: "", status: {}, pausedFrom: "" }; }
 
   /* ---------- Branding ---------- */
   document.querySelectorAll("[data-logo]").forEach((i) => {
     i.onerror = () => (i.style.visibility = "hidden"); // never show a broken-image icon to patients
     i.src = C.logo;
   });
-  document.querySelectorAll("[data-clinic]").forEach((e) => (e.textContent = C.clinicName));
 
   /* ---------- Screen routing ---------- */
   let current = "idle";
@@ -27,21 +29,23 @@
     current = name;
     armIdle();
   }
-  document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => show(b.dataset.go)));
 
   /* ---------- Modal ---------- */
+  let modalOpen = false;
   function confirmBox(title, body, yes, no) {
     return new Promise((res) => {
       $("modalTitle").textContent = title; $("modalBody").textContent = body;
-      $("modalYes").textContent = yes; $("modalNo").textContent = no;
-      $("modal").classList.remove("hidden");
-      const done = (v) => { $("modal").classList.add("hidden"); $("modalYes").onclick = $("modalNo").onclick = null; res(v); };
+      $("modalYes").textContent = yes;
+      $("modalNo").textContent = no || ""; $("modalNo").classList.toggle("hidden", !no);
+      $("modal").classList.remove("hidden"); modalOpen = true;
+      const done = (v) => { closeModal(); res(v); };
       $("modalYes").onclick = () => done(true); $("modalNo").onclick = () => done(false);
     });
   }
+  function closeModal() { $("modal").classList.add("hidden"); modalOpen = false; $("modalYes").onclick = $("modalNo").onclick = null; }
 
   /* ---------- Staff PIN ---------- */
-  let pin = "", pinNext = "setup", fails = 0, lockUntil = 0;
+  let pin = "", pinNext = "setup", pinReturn = "idle", fails = 0, lockUntil = 0;
   const keys = ["1","2","3","4","5","6","7","8","9","⌫","0","OK"];
   $("keypad").innerHTML = keys.map((k) => `<button data-k="${k}" aria-label="${k === "⌫" ? "Delete" : k}">${k}</button>`).join("");
   $("keypad").addEventListener("click", async (e) => {
@@ -60,22 +64,24 @@
   async function checkPin() {
     const ok = (await sha256(pin)) === C.staffPinSha256;
     pin = ""; drawPin();
-    if (ok) { fails = 0; $("pinError").textContent = ""; enterStaff(pinNext); }
+    if (ok) { fails = 0; $("pinError").textContent = ""; pinNext === "setup" ? openSetup() : openSummary(); }
     else { fails++; $("pinError").textContent = "Incorrect PIN"; if (fails >= 5) { lockUntil = Date.now() + 60000; fails = 0; } }
   }
   document.querySelectorAll("[data-staff]").forEach((b) => b.addEventListener("click", () => {
-    pinNext = (current === "idle") ? "setup" : "summary";
+    pinReturn = current;
+    pinNext = current === "idle" ? "setup" : "summary";
     pin = ""; drawPin(); $("pinError").textContent = ""; show("pin");
   }));
-  function enterStaff(next) { if (next === "setup") openSetup(); else openSummary(); }
+  $("pinCancel").addEventListener("click", () => show(pinReturn));
 
-  /* ---------- Setup ---------- */
+  /* ---------- Setup: patient name + one list of forms (WebPT first) ---------- */
+  const WEBPT = { id: "webpt", title: "WebPT patient intake", desc: "You'll scan the patient's WebPT QR code next", minutes: 10, url: "webpt" };
+  function choices() { return (C.webpt.enabled ? [WEBPT] : []).concat(C.forms); }
+
   function openSetup() {
     S = freshState();
-    $("firstName").value = ""; $("lastName").value = ""; $("webptUrl").value = "";
-    $("webptStatus").textContent = ""; $("setupError").textContent = "";
-    $("webptCard").classList.toggle("hidden", !C.webpt.enabled);
-    $("formChecklist").innerHTML = C.forms.map((f) => {
+    $("firstName").value = ""; $("lastName").value = ""; $("setupError").textContent = "";
+    $("formChecklist").innerHTML = choices().map((f) => {
       const ready = !!f.url;
       const price = ready && f.priceParam
         ? `<div class="price hidden" data-price-row="${esc(f.id)}"><label>${esc(f.pricePrompt || "Price")}
@@ -83,40 +89,26 @@
       return `<label><input type="checkbox" value="${esc(f.id)}" ${ready && f.checkedByDefault ? "checked" : ""} ${ready ? "" : "disabled"}>
         <span class="ftitle">${esc(f.title)}${f.desc ? `<small>${esc(f.desc)}</small>` : ""}</span>
         <span class="muted">${ready ? "~" + (f.minutes || 3) + " min" : "not set up yet"}</span></label>${price}`;
-    }).join("") || '<p class="muted">No forms configured.</p>';
-    syncPriceRows();
+    }).join("");
+    syncSetup();
     show("setup");
     setTimeout(() => $("firstName").focus(), 150);
   }
-
-  function syncPriceRows() {
+  function chosenIds() { return [...document.querySelectorAll("#formChecklist input:checked")].map((i) => i.value); }
+  function syncSetup() {
     document.querySelectorAll("#formChecklist input[type=checkbox]").forEach((cb) => {
       const row = document.querySelector(`[data-price-row="${cb.value}"]`);
       if (row) row.classList.toggle("hidden", !cb.checked);
     });
+    $("setupDone").textContent = chosenIds().includes("webpt") ? "Continue → scan WebPT code" : "Ready — hand to patient";
   }
-  $("formChecklist").addEventListener("change", syncPriceRows);
-
-  function validWebpt(u) {
-    try {
-      const url = new URL(u.trim());
-      if (url.protocol !== "https:") return false;
-      const hosts = C.webpt.allowedHosts || [];
-      return hosts.length === 0 || hosts.some((h) => url.hostname === h || url.hostname.endsWith("." + h));
-    } catch { return false; }
-  }
-  $("webptUrl").addEventListener("input", () => {
-    const v = $("webptUrl").value.trim();
-    $("webptStatus").textContent = !v ? "" : validWebpt(v) ? "✓ WebPT link ready" : "That doesn't look like a WebPT link";
-  });
+  $("formChecklist").addEventListener("change", syncSetup);
 
   $("setupDone").addEventListener("click", () => {
     const first = $("firstName").value.trim(), last = $("lastName").value.trim();
-    const chosen = [...document.querySelectorAll("#formChecklist input:checked")].map((i) => i.value);
-    const wurl = $("webptUrl").value.trim();
+    const chosen = chosenIds();
     if (!first || !last) return ($("setupError").textContent = "Enter the patient's first and last name.");
-    if (wurl && !validWebpt(wurl)) return ($("setupError").textContent = "The WebPT link isn't valid. Rescan or clear it.");
-    if (!chosen.length && !wurl) return ($("setupError").textContent = "Pick at least one form or add the WebPT intake.");
+    if (!chosen.length) return ($("setupError").textContent = "Pick at least one form.");
     const prices = {};
     for (const id of chosen) {
       const inp = document.querySelector(`[data-price="${id}"]`);
@@ -128,56 +120,86 @@
       }
       prices[id] = v;
     }
-    stopScan();
-    S.first = first; S.last = last; S.webptUrl = wurl;
+    S.first = first; S.last = last; S.webptUrl = "";
     const forms = C.forms.filter((f) => chosen.includes(f.id));
-    S.steps = forms.map((f) => ({ type: "form", id: f.id, title: f.title, url: f.url,
+    S.steps = forms.map((f) => ({ type: "form", id: f.id, title: f.title, url: f.url, minutes: f.minutes || 3,
       nameParam: f.nameParam || "", priceParam: f.priceParam || "", price: prices[f.id] || "" }));
-    if (wurl) {
-      const w = { type: "webpt", id: "webpt", title: "WebPT patient intake" };
+    if (chosen.includes("webpt")) {
+      const w = { type: "webpt", id: "webpt", title: WEBPT.title, minutes: WEBPT.minutes };
       C.webpt.position === "last" ? S.steps.push(w) : S.steps.unshift(w);
     }
-    S.steps.forEach((st) => (S.status[st.id] = "pending"));
-    const n = S.steps.length;
-    const mins = forms.reduce((a, f) => a + (f.minutes || 3), 0) + (wurl ? 10 : 0);
-    $("helloName").textContent = first;
-    $("helloSummary").textContent = `You have ${n} form${n > 1 ? "s" : ""} to complete. It takes about ${mins} minutes.`;
-    $("helloYes").textContent = `Yes, I'm ${first} ${last.charAt(0)}. — Start`;
-    show("hello");
+    S.status = {}; S.steps.forEach((st) => (S.status[st.id] = "pending"));
+    $("setupError").textContent = "";
+    chosen.includes("webpt") ? openScan() : goHello();
   });
 
-  /* ---------- QR scanning (BarcodeDetector; falls back to paste) ---------- */
+  function goHello() {
+    const n = S.steps.length;
+    const mins = S.steps.reduce((a, s) => a + (s.minutes || 3), 0);
+    $("helloName").textContent = S.first;
+    $("helloSummary").textContent = `You have ${n} form${n > 1 ? "s" : ""} to complete. It takes about ${mins} minutes.`;
+    $("helloYes").textContent = `Yes, I'm ${S.first} ${S.last.charAt(0)}. — Start`;
+    show("hello");
+  }
+
+  /* ---------- WebPT QR scan (staff, after setup) ---------- */
+  function validWebpt(u) {
+    try {
+      const url = new URL(String(u).trim());
+      if (url.protocol !== "https:") return false;
+      const hosts = C.webpt.allowedHosts || [];
+      return hosts.length === 0 || hosts.some((h) => url.hostname === h || url.hostname.endsWith("." + h));
+    } catch { return false; }
+  }
   let stream = null, scanTimer = null;
-  $("scanBtn").addEventListener("click", async () => {
+  function openScan() {
+    $("scanLive").classList.remove("hidden"); $("scanOk").classList.add("hidden");
+    $("scanManual").classList.add("hidden"); $("webptUrl").value = ""; $("scanStatus").textContent = "";
+    $("scanHand").disabled = true;
+    show("scan");
+    startCamera();
+  }
+  async function startCamera() {
     if (!("BarcodeDetector" in window) || !navigator.mediaDevices) {
-      $("webptStatus").textContent = "Camera scanning isn't supported on this browser — paste the link instead.";
+      $("scanStatus").textContent = "Camera scanning isn't available on this browser. Type the link instead.";
+      $("scanManual").classList.remove("hidden");
       return;
     }
     try {
       stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
       const v = $("scanVideo"); v.srcObject = stream; await v.play();
-      $("scanner").classList.remove("hidden");
       const det = new BarcodeDetector({ formats: ["qr_code"] });
       scanTimer = setInterval(async () => {
         try {
           const codes = await det.detect(v);
-          if (codes.length) {
-            const val = codes[0].rawValue;
-            if (validWebpt(val)) { $("webptUrl").value = val; $("webptStatus").textContent = "✓ WebPT link scanned"; stopScan(); }
-            else $("webptStatus").textContent = "Scanned a QR code, but it isn't a WebPT link.";
-          }
+          if (!codes.length) return;
+          const val = codes[0].rawValue;
+          if (validWebpt(val)) scanned(val);
+          else $("scanStatus").textContent = "That QR code isn't a WebPT link.";
         } catch (_) {}
-      }, 400);
+      }, 300);
     } catch (e) {
-      $("webptStatus").textContent = "Couldn't open the camera. Allow camera access for this page in Chrome.";
+      $("scanStatus").textContent = "Couldn't open the camera. Allow camera access for this page in Chrome.";
+      $("scanManual").classList.remove("hidden");
     }
-  });
+  }
   function stopScan() {
     clearInterval(scanTimer); scanTimer = null;
     if (stream) stream.getTracks().forEach((t) => t.stop()); stream = null;
-    $("scanner").classList.add("hidden");
   }
-  $("scanCancel").addEventListener("click", stopScan);
+  function scanned(url) {
+    stopScan();
+    S.webptUrl = url.trim();
+    $("scanLive").classList.add("hidden"); $("scanOk").classList.remove("hidden");
+    $("scanHand").disabled = false;
+  }
+  $("scanManualToggle").addEventListener("click", () => $("scanManual").classList.toggle("hidden"));
+  $("scanManualUse").addEventListener("click", () => {
+    const v = $("webptUrl").value.trim();
+    validWebpt(v) ? scanned(v) : ($("scanStatus").textContent = "That doesn't look like a WebPT link.");
+  });
+  $("scanBack").addEventListener("click", () => { stopScan(); show("setup"); });
+  $("scanHand").addEventListener("click", goHello);
 
   /* ---------- Patient flow ---------- */
   $("helloNo").addEventListener("click", () => show("wrong"));
@@ -210,7 +232,7 @@
     $("progressFill").style.width = (S.idx / total) * 100 + "%";
     $("frameLoading").classList.remove("hidden"); $("frameSlow").classList.add("hidden");
     clearTimeout(slowTimer);
-    slowTimer = setTimeout(() => $("frameSlow").classList.remove("hidden"), C.timeouts.iframeLoadSec * 1000);
+    slowTimer = setTimeout(() => $("frameSlow").classList.remove("hidden"), T.iframeLoadSec * 1000);
     $("formFrame").src = buildFormUrl(f);
     show("form");
   }
@@ -219,27 +241,22 @@
   });
   $("frameRetry").addEventListener("click", () => loadForm(S.steps[S.idx]));
 
-  $("nextBtn").addEventListener("click", async () => {
-    const ok = await confirmBox("Did you tap Submit?",
-      "Make sure you tapped Submit at the bottom of the form and saw the confirmation message.",
-      "Yes, I submitted", "Go back");
-    if (!ok) return;
-    $("formFrame").src = "about:blank"; advance("done");
-  });
+  // One tap: no "did you submit?" pop-up. The staff summary shows "Next tapped" so
+  // staff can check SharePoint for the PDF if anything looks off.
+  $("nextBtn").addEventListener("click", () => { $("formFrame").src = "about:blank"; advance("next"); });
   $("skipBtn").addEventListener("click", async () => {
     const ok = await confirmBox("Skip this form?", "Our staff will go over it with you instead.", "Skip it", "Go back");
     if (!ok) return;
     $("formFrame").src = "about:blank"; advance("skipped");
   });
 
-  /* ---------- WebPT step ----------
+  /* ---------- WebPT step (patient) ----------
      WebPT is another website, so it opens on top of this page (new tab / Chrome
      custom tab). This page stays underneath with a Continue button. If the browser
      won't open a new tab, it navigates in place and resumes from sessionStorage
      when the patient comes back (back arrow / swipe back). */
   function showWebpt(waiting) {
-    const total = S.steps.length;
-    $("webptStep").textContent = `Step ${S.idx + 1} of ${total}`;
+    $("webptStep").textContent = `Step ${S.idx + 1} of ${S.steps.length}`;
     $("webptIntro").classList.toggle("hidden", !!waiting);
     $("webptWait").classList.toggle("hidden", !waiting);
     show("webpt");
@@ -262,19 +279,22 @@
     if (ok) { clearResume(); advance("incomplete"); }
   });
 
-  $("textSize").addEventListener("click", () => document.documentElement.classList.toggle("large"));
+  $("textSize").addEventListener("click", () => {
+    const big = document.documentElement.classList.toggle("large");
+    $("textSize").textContent = big ? "Normal text" : "Enlarge text";
+  });
 
-  /* ---------- Staff summary / reset ---------- */
-  function summaryRows() { return S.steps.map((st) => [st.title, S.status[st.id]]); }
+  /* ---------- Staff summary / unlock / reset ---------- */
   function openSummary() {
-    const rows = summaryRows();
-    const label = { done: "Done", skipped: "Skipped", pending: "Not reached", opened: "Opened, not confirmed", incomplete: "Not finished" };
-    const cls = { done: "done", skipped: "skipped", pending: "pending", opened: "pending", incomplete: "skipped" };
-    $("summaryList").innerHTML = rows.length
-      ? rows.map(([t, s]) => `<li><span>${esc(t)}</span><span class="tag ${cls[s] || "pending"}">${label[s] || s}</span></li>`).join("")
+    const label = { done: "Done", next: "Next tapped", skipped: "Skipped", pending: "Not reached", opened: "Opened, not confirmed", incomplete: "Not finished", inprogress: "In progress" };
+    const cls = { done: "done", next: "done", skipped: "skipped", pending: "pending", opened: "pending", incomplete: "skipped", inprogress: "pending" };
+    $("summaryList").innerHTML = S.steps.length
+      ? S.steps.map((st, i) => { const s = (S.pausedFrom && i === S.idx && S.status[st.id] === "pending") ? "inprogress" : S.status[st.id]; return `<li><span>${esc(st.title)}</span><span class="tag ${cls[s] || "pending"}">${label[s] || s}</span></li>`; }).join("")
       : "<li>No session data.</li>";
+    $("resumeBtn").classList.toggle("hidden", !S.pausedFrom);
     show("summary");
   }
+  $("resumeBtn").addEventListener("click", () => { const back = S.pausedFrom; S.pausedFrom = ""; show(back); });
   $("resetBtn").addEventListener("click", hardReset);
   function hardReset() {
     try { sessionStorage.clear(); } catch (_) {}
@@ -283,28 +303,37 @@
     location.replace(location.pathname); // full reload wipes everything in memory
   }
 
-  /* ---------- Inactivity ---------- */
-  let idleTimer = null, warnTimer = null;
+  /* ---------- Inactivity ----------
+     Patient screens: "Are you still there?" after patientQuestionSec, then the tablet
+     pauses (locks) at patientLockSec. Staff unlock with the PIN and can continue.
+     Form pages: touches INSIDE a Microsoft Form can't be seen by this page, so the
+     question waits longer there (formQuestionSec) to avoid interrupting people mid-form.
+     Staff screens reset to the welcome screen when left alone. */
+  let idleTimer = null, lockTimer = null;
+  function clearTimers() { clearTimeout(idleTimer); clearTimeout(lockTimer); }
   function armIdle() {
-    clearTimeout(idleTimer); clearTimeout(warnTimer);
-    if (current === "idle" || current === "pin") return;
-    if (current === "done") { idleTimer = setTimeout(hardReset, C.timeouts.doneAutoResetSec * 1000); return; }
-    const long = current === "form" || current === "webpt";
-    const sec = long ? C.timeouts.formStepSec : C.timeouts.idleScreenSec;
-    idleTimer = setTimeout(warn, sec * 1000);
+    clearTimers();
+    if (current === "done") { idleTimer = setTimeout(hardReset, T.doneAutoResetSec * 1000); return; }
+    if (current === "lock") { idleTimer = setTimeout(hardReset, T.lockAutoResetMin * 60000); return; }
+    if (current === "pin") { idleTimer = setTimeout(() => show(pinReturn), 60000); return; }
+    if (STAFF_SCREENS.includes(current)) { idleTimer = setTimeout(() => (S.pausedFrom ? lockNow() : hardReset()), T.staffResetSec * 1000); return; }
+    if (!PATIENT_SCREENS.includes(current)) return;
+    const q = current === "form" ? T.formQuestionSec : T.patientQuestionSec;
+    const lockAfter = current === "form" ? T.formQuestionSec + (T.patientLockSec - T.patientQuestionSec) : T.patientLockSec;
+    idleTimer = setTimeout(async () => {
+      lockTimer = setTimeout(lockNow, (lockAfter - q) * 1000);
+      await confirmBox("Are you still there?", "Tap below to keep going.", "I'm still here", "");
+      if (current !== "lock") armIdle();
+    }, q * 1000);
   }
-  async function warn() {
-    warnTimer = setTimeout(hardReset, C.timeouts.warningSec * 1000);
-    const stay = await confirmBox("Are you still there?",
-      `For your privacy this screen will reset in ${C.timeouts.warningSec} seconds.`, "I'm still here", "Start over");
-    clearTimeout(warnTimer);
-    stay ? armIdle() : hardReset();
+  function lockNow() {
+    clearTimers(); closeModal(); stopScan();
+    if (PATIENT_SCREENS.includes(current)) S.pausedFrom = current;
+    show("lock");
   }
-  // While WebPT is on top, this page is hidden: pause timers so it can't reset mid-intake.
-  document.addEventListener("visibilitychange", () => {
-    if (document.hidden) { clearTimeout(idleTimer); clearTimeout(warnTimer); } else armIdle();
-  });
-  ["pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, () => { if ($("modal").classList.contains("hidden")) armIdle(); }, { passive: true }));
+  // While WebPT is on top, this page is hidden: pause timers so it can't lock mid-intake.
+  document.addEventListener("visibilitychange", () => { if (document.hidden) clearTimers(); else armIdle(); });
+  ["pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, () => { if (!modalOpen) armIdle(); }, { passive: true }));
 
   /* ---------- Connectivity ---------- */
   const net = () => $("offline").classList.toggle("hidden", navigator.onLine);

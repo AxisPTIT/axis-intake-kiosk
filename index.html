@@ -23,7 +23,7 @@
       <h1>Welcome<em>.</em></h1>
       <p class="lead">Please check in at the front desk.<br>Our staff will get this tablet ready for you.</p>
     </div>
-    <button class="staff-link" data-staff aria-label="Staff setup">Staff</button>
+    <button class="btn staff-btn" data-staff>🔒 Staff login</button>
   </section>
 
   <!-- 2. Staff PIN -->
@@ -33,7 +33,7 @@
       <div class="pin-dots" id="pinDots" aria-live="polite"></div>
       <p class="error" id="pinError"></p>
       <div class="keypad" id="keypad"></div>
-      <button class="btn ghost" data-go="idle">Cancel</button>
+      <button class="btn ghost" id="pinCancel">Cancel</button>
     </div>
   </section>
 
@@ -49,26 +49,38 @@
           <label>Last name<input id="lastName" autocomplete="off" autocapitalize="words" spellcheck="false"></label>
         </div>
       </div>
-      <div class="card" id="webptCard">
-        <h3>2. WebPT intake <span class="muted">(optional)</span></h3>
-        <p class="muted">In Reach: patient chart → Send Intake → Complete Intake → Kiosk mode. Scan the QR code or paste the link.</p>
-        <div class="row">
-          <button class="btn secondary" id="scanBtn">Scan WebPT QR</button>
-          <input id="webptUrl" placeholder="…or paste kiosk link" autocomplete="off" spellcheck="false" inputmode="url">
-        </div>
-        <p class="ok" id="webptStatus"></p>
-        <div id="scanner" class="scanner hidden">
-          <video id="scanVideo" playsinline muted></video>
-          <button class="btn ghost" id="scanCancel">Stop scanning</button>
-        </div>
-      </div>
       <div class="card">
-        <h3>3. Consent forms for this visit</h3>
+        <h3>2. Forms for this visit</h3>
         <div id="formChecklist" class="checklist"></div>
       </div>
       <p class="error" id="setupError"></p>
     </div>
     <footer class="actions"><button class="btn primary big" id="setupDone">Ready — hand to patient</button></footer>
+  </section>
+
+  <!-- 3b. WebPT scan (staff) -->
+  <section id="s-scan" class="screen" aria-label="Scan WebPT code">
+    <header class="bar"><img class="logo-sm" data-logo alt=""><span>Scan WebPT code</span>
+      <button class="btn ghost small" id="scanBack">← Back</button></header>
+    <div class="scroll">
+      <div class="card center-card">
+        <div id="scanLive">
+          <p class="lead">Hold the tablet up to the patient's WebPT QR code.</p>
+          <video id="scanVideo" playsinline muted></video>
+          <p class="error" id="scanStatus"></p>
+          <button class="btn ghost small" id="scanManualToggle">Can't scan? Type the link</button>
+          <div id="scanManual" class="row hidden">
+            <input id="webptUrl" placeholder="Paste or type the WebPT kiosk link" autocomplete="off" spellcheck="false" inputmode="url">
+            <button class="btn secondary" id="scanManualUse">Use link</button>
+          </div>
+        </div>
+        <div id="scanOk" class="hidden">
+          <div class="check" aria-hidden="true">✓</div>
+          <h2>WebPT code scanned</h2>
+        </div>
+      </div>
+    </div>
+    <footer class="actions"><button class="btn primary big" id="scanHand" disabled>Hand to patient →</button></footer>
   </section>
 
   <!-- 4. Patient confirm -->
@@ -89,10 +101,10 @@
     <header class="bar">
       <img class="logo-sm" data-logo alt="">
       <div class="title"><span class="step" id="stepLabel"></span><strong id="formTitle"></strong></div>
-      <button class="btn ghost small" id="textSize" aria-label="Larger text">A+</button>
+      <button class="btn secondary small" id="textSize">Enlarge text</button>
     </header>
     <div class="progress" aria-hidden="true"><div id="progressFill"></div></div>
-    <p class="hint">Fill out the form below, then tap <strong>Submit</strong> at the bottom of the form. When you see the confirmation message, tap <strong>Next</strong>.</p>
+    <p class="hint">Tap <strong>Submit</strong> at the bottom of the form, then tap <strong>Next</strong>.</p>
     <div class="frame-wrap">
       <div class="loading" id="frameLoading"><div class="spinner"></div><p>Loading form…</p>
         <p class="muted hidden" id="frameSlow">Taking longer than usual. <button class="btn ghost small" id="frameRetry">Try again</button> or let the front desk know.</p></div>
@@ -100,7 +112,7 @@
     </div>
     <footer class="actions split">
       <button class="btn ghost" id="skipBtn">Skip this form</button>
-      <button class="btn primary big" id="nextBtn">I submitted it — Next →</button>
+      <button class="btn primary big" id="nextBtn">Next →</button>
     </footer>
   </section>
 
@@ -136,7 +148,7 @@
       <h1>All <em>done.</em></h1>
       <p class="lead">Thank you for completing the consent forms. Please return the tablet to Axis PT staff.</p>
     </div>
-    <button class="staff-link" data-staff aria-label="Staff">Staff</button>
+    <button class="btn staff-btn" data-staff>🔒 Staff login</button>
   </section>
 
   <!-- 8. Wrong patient -->
@@ -145,7 +157,17 @@
       <h1>No problem</h1>
       <p class="lead">Please return the tablet to the front desk so we can set it up for you.</p>
     </div>
-    <button class="staff-link" data-staff aria-label="Staff">Staff</button>
+    <button class="btn staff-btn" data-staff>🔒 Staff login</button>
+  </section>
+
+  <!-- 8b. Paused (inactivity lock) -->
+  <section id="s-lock" class="screen" aria-label="Paused">
+    <div class="center">
+      <img class="logo-lg" data-logo alt="AXIS Physical Therapy">
+      <h1>Paused for <em>privacy.</em></h1>
+      <p class="lead">Please return the tablet to the front desk.<br>Staff can unlock it so you can pick up where you left off.</p>
+    </div>
+    <button class="btn staff-btn" data-staff>🔒 Staff login</button>
   </section>
 
   <!-- 9. Staff summary -->
@@ -153,7 +175,7 @@
     <header class="bar"><img class="logo-sm" data-logo alt=""><span>Session summary</span></header>
     <div class="scroll"><div class="card"><ul id="summaryList" class="summary"></ul>
       <p class="muted">Skipped or unconfirmed forms were not recorded anywhere else — follow up before the visit. Check SharePoint for the saved PDFs.</p></div></div>
-    <footer class="actions"><button class="btn primary big" id="resetBtn">Clear &amp; reset for next patient</button></footer>
+    <footer class="actions split"><button class="btn secondary big hidden" id="resumeBtn">Unlock &amp; continue</button><button class="btn primary big" id="resetBtn">Clear &amp; reset for next patient</button></footer>
   </section>
 
   <!-- Modal -->

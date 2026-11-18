@@ -13,18 +13,17 @@ It is hosted on GitHub Pages: `AxisPTIT/axis-intake-kiosk` → https://axisptit.
 
 ## How it works
 
-1. **Idle screen:** "Welcome. Please check in at the front desk." A small **Staff** button sits in the corner.
-2. **Staff PIN** (same PIN as the previous kiosk version), then **Setup**:
-   - Enter the patient's first and last name.
-   - *(Optional)* Add the WebPT intake. In Reach, go to patient chart → Send Intake → Complete Intake → **Kiosk mode**. Then tap **Scan WebPT QR** (uses the tablet camera) or paste the link.
-   - Check the consent forms needed for this visit.
-   - Tap **Ready: hand to patient**.
-3. **Patient:** sees "Hi Jane!" and confirms *"Yes, I'm Jane D."* ("That's not me" sends them back to the desk.)
+1. **Welcome screen:** "Welcome. Please check in at the front desk." A large **🔒 Staff login** button sits bottom-right.
+2. **Staff PIN**, then **Setup**: enter the patient's first and last name, then tick the forms for this visit. **WebPT patient intake** is the first item in the same list. Forms with a price (Wellness) ask for it when ticked.
+3. **If WebPT is ticked**, the button reads **Continue → scan WebPT code**. The camera opens: hold the tablet up to the QR code from Reach (patient chart → Send Intake → Complete Intake → Kiosk mode). Once it's read, tap **Hand to patient →**. If the camera won't work, "Can't scan? Type the link" is a fallback. **If WebPT isn't ticked**, the button reads **Ready — hand to patient** and goes straight to the patient.
+   The patient sees "Hi Brad! You have 3 forms…" and confirms *"Yes, I'm Brad M."* ("That's not me" sends them back to the desk.)
 4. **Steps run in order.** By default the WebPT intake is first, then each consent form (set `webpt.position` in `config.js`):
    - **WebPT:** "Open my intake form" opens WebPT **on top of** the kiosk page. When the patient finishes, they tap ✕ or ← (or swipe back) to return. Then they tap **I've finished. Continue →**. Two more buttons: *Open my intake form again* and *I couldn't finish it*. If Chrome opens WebPT in the same tab instead, the page remembers where the patient was and comes back to that same screen.
-   - **Consent forms:** each form is embedded with the patient's name pre-filled. Each one has **Skip this form** and **I submitted it: Next**. Both ask the patient to confirm.
+   - **Consent forms:** each form is embedded with the patient's name pre-filled. Each one has **Skip this form** (asks to confirm) and **Next →** (one tap, no pop-up). The top bar has an **Enlarge text** button; it enlarges the kiosk's own text, not the Microsoft Form itself.
 5. **Done screen:** "Thank you for completing the consent forms. Please return the tablet to Axis PT staff." It auto-resets after 90 s.
-6. **Staff → PIN → Session summary** shows each step as Done, Skipped, Not finished or Not reached. Tap **Clear & reset**.
+6. **Staff login → PIN → Session summary** shows each step as Done, Next tapped, Skipped, In progress, Not finished or Not reached. Tap **Clear & reset**.
+
+Inactivity: on patient screens, no touch for **60 s** shows "Are you still there?"; no touch by **120 s** pauses the tablet ("Paused for privacy, return to the front desk"). Staff log in and choose **Unlock & continue** (back to the same spot) or **Clear & reset**. On Microsoft Form pages the question waits **5 min**, because touches inside the form can't be detected. A paused tablet nobody unlocks is wiped after 30 min. All of these are in `config.js` → `timeouts`.
 
 Privacy: the patient's name and progress live in page memory. During the WebPT step only, a copy is kept in that tab's sessionStorage so the patient can resume. Reset wipes it and reloads the page. Nothing goes to GitHub. While WebPT is open on top, the kiosk page's inactivity timer is paused, so it can't reset mid-intake. After that: "Are you still there?", then a reset.
 
