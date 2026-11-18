@@ -88,9 +88,9 @@
       const price = ready && f.priceParam
         ? `<div class="price hidden" data-price-row="${esc(f.id)}"><label>${esc(f.pricePrompt || "Price")}
              <input data-price="${esc(f.id)}" inputmode="decimal" autocomplete="off" placeholder="e.g. 45"></label></div>` : "";
-      return `<label><input type="checkbox" value="${esc(f.id)}" ${ready && f.checkedByDefault ? "checked" : ""} ${ready ? "" : "disabled"}>
+      return `<div class="fitem"><label><input type="checkbox" value="${esc(f.id)}" ${ready && f.checkedByDefault ? "checked" : ""} ${ready ? "" : "disabled"}>
         <span class="ftitle">${esc(f.title)}${f.desc ? `<small>${esc(f.desc)}</small>` : ""}</span>
-        <span class="muted">${ready ? "~" + (f.minutes || 3) + " min" : "not set up yet"}</span></label>${price}`;
+        ${ready ? "" : '<span class="muted">not set up yet</span>'}</label>${price}</div>`;
     }).join("");
     syncSetup();
     show("setup");

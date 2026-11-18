@@ -157,3 +157,8 @@ input:focus { border-color: var(--brand); outline: none; }
 #s-form .actions .btn { min-height: 48px; padding: .35em 1.3em; font-size: .9em; }
 #s-form .actions .btn.big { font-size: .95em; padding: .35em 1.8em; }
 @media (max-width: 640px) { #s-form .actions.split { flex-direction: row; } #s-form .actions.split .btn { width: auto; } }
+
+/* Each form + its price box share one row; the separator sits under both */
+.checklist .fitem { border-bottom: 1px solid #f1ead6; }
+.checklist .fitem:last-child { border-bottom: 0; }
+.checklist .fitem > label { border-bottom: 0; }
