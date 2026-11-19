@@ -11,7 +11,7 @@
   <link rel="icon" href="icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Jost:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
   <div id="offline" class="banner hidden" role="alert">No internet connection. Please let the front desk know.</div>
@@ -108,7 +108,7 @@
     <div class="frame-wrap">
       <div class="loading" id="frameLoading"><div class="spinner"></div><p>Loading form…</p>
         <p class="muted hidden" id="frameSlow">Taking longer than usual. <button class="btn ghost small" id="frameRetry">Try again</button> or let the front desk know.</p></div>
-      <iframe id="formFrame" title="Consent form" referrerpolicy="no-referrer"></iframe>
+      <iframe id="formFrame" title="Consent form" referrerpolicy="no-referrer" credentialless></iframe>
     </div>
     <footer class="actions split">
       <button class="btn ghost" id="skipBtn">Skip this form</button>
@@ -190,7 +190,7 @@
     </div>
   </div>
 
-  <script src="config.js?v=7"></script>
-  <script src="app.js?v=7"></script>
+  <script src="config.js?v=8"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>

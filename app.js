@@ -238,6 +238,15 @@
     $("formFrame").src = buildFormUrl(f);
     show("form");
   }
+  // v8: forms load in a credentialless iframe so unsubmitted Microsoft Forms drafts
+  // never carry over to the next patient. Warn staff if this Chrome is too old.
+  if (!("credentialless" in HTMLIFrameElement.prototype)) {
+    const w = document.createElement("div");
+    w.textContent = "Warning: this browser doesn't support private form frames. Update Chrome on this tablet, or clear site data for forms.cloud.microsoft after any unfinished form.";
+    w.style.cssText = "background:#fff3cd;color:#664d03;padding:10px 14px;margin:8px 0;border-radius:8px;font-size:15px";
+    const host = document.getElementById("s-setup") || document.body;
+    host.insertBefore(w, host.firstChild);
+  }
   $("formFrame").addEventListener("load", () => {
     if ($("formFrame").src && $("formFrame").src !== "about:blank") { clearTimeout(slowTimer); $("frameLoading").classList.add("hidden"); }
   });
