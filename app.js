@@ -288,7 +288,7 @@
 
   /* ---------- Staff summary / unlock / reset ---------- */
   function openSummary() {
-    const label = { done: "Done", next: "Next tapped", skipped: "Skipped", pending: "Not reached", opened: "Opened, not confirmed", incomplete: "Not finished", inprogress: "In progress" };
+    const label = { done: "Done", next: "Done tapped", skipped: "Skipped", pending: "Not reached", opened: "Opened, not confirmed", incomplete: "Not finished", inprogress: "In progress" };
     const cls = { done: "done", next: "done", skipped: "skipped", pending: "pending", opened: "pending", incomplete: "skipped", inprogress: "pending" };
     $("summaryList").innerHTML = S.steps.length
       ? S.steps.map((st, i) => { const s = (S.pausedFrom && i === S.idx && S.status[st.id] === "pending") ? "inprogress" : S.status[st.id]; return `<li><span>${esc(st.title)}</span><span class="tag ${cls[s] || "pending"}">${label[s] || s}</span></li>`; }).join("")

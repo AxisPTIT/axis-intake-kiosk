@@ -19,9 +19,9 @@ It is hosted on GitHub Pages: `AxisPTIT/axis-intake-kiosk` → https://axisptit.
    The patient sees "Hi Brad! You have 3 forms…" and confirms *"Yes, I'm Brad M."* ("That's not me" sends them back to the desk.)
 4. **Steps run in order.** By default the WebPT intake is first, then each consent form (set `webpt.position` in `config.js`):
    - **WebPT:** "Open my intake form" opens WebPT **on top of** the kiosk page. When the patient finishes, they tap ✕ or ← (or swipe back) to return. Then they tap **I've finished. Continue →**. Two more buttons: *Open my intake form again* and *I couldn't finish it*. If Chrome opens WebPT in the same tab instead, the page remembers where the patient was and comes back to that same screen.
-   - **Consent forms:** each form is embedded with the patient's name pre-filled. Each one has **Skip this form** (asks to confirm) and **Next →** (one tap, no pop-up). The top bar has an **Enlarge text** button; it enlarges the kiosk's own text, not the Microsoft Form itself.
+   - **Consent forms:** each form is embedded with the patient's name (and, for Wellness and Credentialing, the staff-entered price) pre-filled. Forms have several pages with their own **Next** buttons and a **Submit** at the end. The kiosk's own buttons are **Skip this form** (asks to confirm) and **Done with this form →** (one tap, no pop-up). The top bar has an **Enlarge text** button; it enlarges the kiosk's own text, not the Microsoft Form itself.
 5. **Done screen:** "Thank you for completing the consent forms. Please return the tablet to Axis PT staff." It auto-resets after 90 s.
-6. **Staff login → PIN → Session summary** shows each step as Done, Next tapped, Skipped, In progress, Not finished or Not reached. Tap **Clear & reset**.
+6. **Staff login → PIN → Session summary** shows each step as Done, Done tapped, Skipped, In progress, Not finished or Not reached. Tap **Clear & reset**.
 
 Inactivity: on patient screens (including form pages), no touch for **200 s** shows "Are you still there?"; no answer within **120 s** after that pauses the tablet ("Paused for privacy, return to the front desk"). Staff log in and choose **Unlock & continue** (back to the same spot) or **Clear & reset**. Touches inside a Microsoft Form can't be detected, so a patient typing in a long form may see the question; tapping "I'm still here" carries on. A paused tablet nobody unlocks is wiped after 30 min. All of these are in `config.js` → `timeouts`.
 
@@ -29,16 +29,14 @@ Privacy: the patient's name and progress live in page memory. During the WebPT s
 
 ## One-time setup
 
-### 1. Microsoft Forms (for each consent form)
-- Settings → **Who can fill out this form: Anyone can respond.** *(Required for embedding: a sign-in prompt won't work inside the frame. This is an inference from how Microsoft sign-in behaves in frames; confirm on the tablet.)*
-- Settings → turn **off** "One response per person". Also leave **"Record name" off**, since the tablet is shared.
-- **⋯ → Get pre-filled link** → type `PATIENTNAME` in the patient-name question → **Get link** → paste it as that form's `url` in `config.js`.
-  *(If your Forms tenant doesn't show "Get pre-filled link", paste the normal share link instead. The kiosk still works, but the patient types their own name.)*
+### 1. Microsoft Forms (done Nov 18, 2026)
+All 8 forms were rebuilt from the Nov 18 print PDFs and are already set up: **Anyone can respond** (no sign-in inside the frame), pre-filled answers **on**, progress bar **on**, "Submit another response" **hidden**, "save my response" and receipts **off**, and a thank-you message that tells the patient to tap **Done with this form**. Question IDs for pre-fill are already in `config.js`.
+If you add a new form: turn on **⋯ → Get Pre-filled URL → Enable pre-filled answers**, copy the patient-name question ID (the `r…` key in the pre-filled link) into `nameParam`, and open the form once in the Forms editor before testing. Forms built outside the editor showed **Submit** on page 1 until they had been opened there once.
 - **Before going live, verify** that your Microsoft 365 plan's BAA/HIPAA coverage includes Microsoft Forms responses. This is not confirmed from any of your documents.
 
 ### 2. Edit `config.js`
 - `staffPinSha256`: already set to the existing staff PIN. To change it, generate a new hash (instructions are in the file).
-- `forms[]`: Wellness, Pelvic Floor and Self-Pay have live links. Dry Needling and Credentialing still need theirs. Fill `nameParam` with each form's name-question ID so names pre-fill (blank for now). Add or remove forms by copying an entry (`id` must be unique).
+- `forms[]`: all 8 forms have live links and pre-fill IDs. Consent, Financial Responsibility and HIPAA are ticked by default; staff untick them for returning patients. Add or remove forms by copying an entry (`id` must be unique).
 - `webpt.allowedHosts`: set to `webpt.com` (any subdomain is accepted). If a real scanned link is rejected, add its domain.
 - `logo`: currently loads from axisptutah.com. Better: download `https://axisptutah.com/images/logo-nav.png` into the repo as `assets/logo.png` and point to it, so the kiosk doesn't depend on the website.
 
@@ -66,6 +64,7 @@ Menu names below are typical for Samsung One UI. They may differ slightly on you
 - Network: patient/guest or IoT VLAN, not the staff LAN.
 - After a reboot, staff reopen AXIS Forms and pin it again.
 - **Weekly:** Chrome → Settings → Privacy → **Delete browsing data** (cookies and cache). This clears leftover WebPT or Microsoft sessions; nothing does it automatically now.
+- **⚠ Unsubmitted Microsoft Forms drafts (privacy).** Microsoft Forms keeps a patient's *unsubmitted* answers in the browser and offers them to the next person who opens that form ("Use previous draft"), or reloads them silently. Submitting clears the draft; **skipping a form, walking away, or a kiosk reset does not.** The kiosk cannot clear Microsoft's storage. Until this is solved: if the summary shows a form as **Skipped**, **Done tapped** without a submission, or **Not finished**, clear Chrome site data for `forms.cloud.microsoft` before the next patient (Chrome → Settings → Privacy and security → Site settings → View permissions and data stored across sites → search "forms" → Delete). Test on the tablet whether blocking site data for `[*.]forms.cloud.microsoft` (Site settings → On-device site data → "Not allowed to save data") stops drafts without breaking the forms; if it does, that is the permanent fix.
 
 **What to test on the tablet (I couldn't test these off-device)**
 - Does WebPT open on top of the pinned app (a Chrome tab with ✕), and does ✕ or back return to the Continue screen? If pinning blocks the new tab, the page falls back to opening WebPT in the same tab; then **back** returns to the Continue screen.

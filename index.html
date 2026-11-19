@@ -11,7 +11,7 @@
   <link rel="icon" href="icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Jost:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
   <div id="offline" class="banner hidden" role="alert">No internet connection. Please let the front desk know.</div>
@@ -104,7 +104,7 @@
       <button class="btn secondary small" id="textSize">Enlarge text</button>
     </header>
     <div class="progress" aria-hidden="true"><div id="progressFill"></div></div>
-    <p class="hint">Tap <strong>Submit</strong> at the bottom of the form, then tap <strong>Next</strong>.</p>
+    <p class="hint">Use the form's own <strong>Next</strong> buttons to move through it, tap <strong>Submit</strong> at the end, then tap <strong>Done with this form</strong>.</p>
     <div class="frame-wrap">
       <div class="loading" id="frameLoading"><div class="spinner"></div><p>Loading form…</p>
         <p class="muted hidden" id="frameSlow">Taking longer than usual. <button class="btn ghost small" id="frameRetry">Try again</button> or let the front desk know.</p></div>
@@ -112,7 +112,7 @@
     </div>
     <footer class="actions split">
       <button class="btn ghost" id="skipBtn">Skip this form</button>
-      <button class="btn primary big" id="nextBtn">Next →</button>
+      <button class="btn primary big" id="nextBtn">Done with this form →</button>
     </footer>
   </section>
 
@@ -190,7 +190,7 @@
     </div>
   </div>
 
-  <script src="config.js?v=6"></script>
-  <script src="app.js?v=6"></script>
+  <script src="config.js?v=7"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
