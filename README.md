@@ -14,13 +14,14 @@ It is hosted on GitHub Pages: `AxisPTIT/axis-intake-kiosk` → https://axisptit.
 ## How it works
 
 1. **Welcome screen:** "Welcome. Please check in at the front desk." A large **🔒 Staff login** button sits bottom-right.
-2. **Staff PIN**, then **Setup**: enter the patient's first and last name, then tick the forms for this visit. **WebPT patient intake** is the first item in the same list. Forms with a price (Wellness) ask for it when ticked.
+2. **Staff PIN**, then **Setup**: enter the patient's first and last name and, optionally, date of birth (MM/DD/YYYY; it pre-fills DOB on every Microsoft Form so the patient doesn't type it each time), then tick the forms for this visit. Setup **Cancel** returns to the welcome screen. **WebPT patient intake** is the first item in the same list. Forms with a price (Wellness) ask for it when ticked.
 3. **If WebPT is ticked**, the button reads **Continue → scan WebPT code**. The camera opens: hold the tablet up to the QR code from Reach (patient chart → Send Intake → Complete Intake → Kiosk mode). Once it's read, tap **Hand to patient →**. If the camera won't work, "Can't scan? Type the link" is a fallback. **If WebPT isn't ticked**, the button reads **Ready — hand to patient** and goes straight to the patient.
    The patient sees "Hi Brad! You have 3 forms…" and confirms *"Yes, I'm Brad M."* ("That's not me" sends them back to the desk.)
 4. **Steps run in order.** By default the WebPT intake is first, then each consent form (set `webpt.position` in `config.js`):
-   - **WebPT:** "Open my intake form" opens WebPT **on top of** the kiosk page. When the patient finishes, they tap ✕ or ← (or swipe back) to return. Then they tap **I've finished. Continue →**. Two more buttons: *Open my intake form again* and *I couldn't finish it*. If Chrome opens WebPT in the same tab instead, the page remembers where the patient was and comes back to that same screen.
+   - **WebPT (v9):** "Open my intake form" shows WebPT **inside** the kiosk page, under the kiosk header, with **I've finished — continue →** and *I couldn't finish it* always at the bottom. No browser ✕ or back arrow needed. If WebPT shows a blank or refused page in the frame, the patient (or staff) taps **Form not showing?** → *Open full screen*: WebPT then opens on top of the kiosk the old (v8) way, and closing it returns to a Continue screen. To make the old way the default, set `webpt.mode: "tab"` in `config.js`.
    - **Consent forms:** each form is embedded with the patient's name (and, for Wellness and Credentialing, the staff-entered price) pre-filled. Forms have several pages with their own **Next** buttons and a **Submit** at the end. The kiosk's own buttons are **Skip this form** (asks to confirm) and **Done with this form →** (one tap, no pop-up). The top bar has an **Enlarge text** button; it enlarges the kiosk's own text, not the Microsoft Form itself.
 5. **Done screen:** "Thank you for completing the consent forms. Please return the tablet to Axis PT staff." It auto-resets after 90 s.
+   - **Clear & reset (v9)** wipes the screen, forms, WebPT frame and names in the page first, then reloads with a fresh URL, so it returns to the welcome screen even if the reload is slow.
 6. **Staff login → PIN → Session summary** shows each step as Done, Done tapped, Skipped, In progress, Not finished or Not reached. Tap **Clear & reset**.
 
 Inactivity: on patient screens (including form pages), no touch for **200 s** shows "Are you still there?"; no answer within **120 s** after that pauses the tablet ("Paused for privacy, return to the front desk"). Staff log in and choose **Unlock & continue** (back to the same spot) or **Clear & reset**. Touches inside a Microsoft Form can't be detected, so a patient typing in a long form may see the question; tapping "I'm still here" carries on. A paused tablet nobody unlocks is wiped after 30 min. All of these are in `config.js` → `timeouts`.
@@ -36,7 +37,7 @@ If you add a new form: turn on **⋯ → Get Pre-filled URL → Enable pre-fille
 
 ### 2. Edit `config.js`
 - `staffPinSha256`: already set to the existing staff PIN. To change it, generate a new hash (instructions are in the file).
-- `forms[]`: all 8 forms have live links and pre-fill IDs. Consent, Financial Responsibility and HIPAA are ticked by default; staff untick them for returning patients. Add or remove forms by copying an entry (`id` must be unique).
+- `forms[]`: 5 forms (Pelvic Floor, Dry Needling, Self-Pay, Temporary Credentialing, Wellness Program), all with live links and name/DOB pre-fill IDs; none ticked by default. Consent to Treat, Financial Responsibility and HIPAA were removed Nov 19, 2026 because patients sign those in WebPT. Add or remove forms by copying an entry (`id` must be unique).
 - `webpt.allowedHosts`: set to `webpt.com` (any subdomain is accepted). If a real scanned link is rejected, add its domain.
 - `logo`: currently loads from axisptutah.com. Better: download `https://axisptutah.com/images/logo-nav.png` into the repo as `assets/logo.png` and point to it, so the kiosk doesn't depend on the website.
 
@@ -67,7 +68,8 @@ Menu names below are typical for Samsung One UI. They may differ slightly on you
 - **Unsubmitted Microsoft Forms drafts (privacy) — fixed in v8.** Microsoft Forms saves a patient's *unsubmitted* answers in the browser and offers them to the next person who opens that form. Since v8 the form frame is a Chrome **credentialless** iframe: it gets a fresh, empty storage area every time the kiosk page loads, and every reset reloads the page, so one patient's unfinished answers cannot reach the next patient. Tested Nov 18, 2026 in desktop Chrome: without it a typed answer survived a reload; with it, it did not, and forms still submit normally. Needs Chrome 110 or newer (Android included). If the staff screen ever shows the yellow "private form frame not supported" warning, update Chrome on the tablet.
 
 **What to test on the tablet (I couldn't test these off-device)**
-- Does WebPT open on top of the pinned app (a Chrome tab with ✕), and does ✕ or back return to the Continue screen? If pinning blocks the new tab, the page falls back to opening WebPT in the same tab; then **back** returns to the Continue screen.
+- **v9: does WebPT display inside the kiosk?** Not verified: WebPT may refuse to be shown inside another site. If it shows blank or "refused to connect", set `webpt.mode: "tab"` (or use **Form not showing?** each time).
+- In tab mode: does WebPT open on top of the pinned app, and does ✕ or back return to the Continue screen?
 - While pinned, can a patient reach anything else? Try home, recents, the notification shade and long-press.
 - Does the WebPT QR scan work? If the camera button says it isn't supported, paste the link instead.
 

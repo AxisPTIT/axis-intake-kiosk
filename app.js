@@ -11,11 +11,11 @@
     lockAutoResetMin: 30, doneAutoResetSec: 90, iframeLoadSec: 20 }, C.timeouts || {});
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const PATIENT_SCREENS = ["hello", "form", "webpt"];
+  const PATIENT_SCREENS = ["hello", "form", "webpt", "webptframe"];
   const STAFF_SCREENS = ["setup", "scan", "summary"];
 
   let S = freshState();
-  function freshState() { return { first: "", last: "", steps: [], idx: 0, webptUrl: "", status: {}, pausedFrom: "" }; }
+  function freshState() { return { first: "", last: "", dob: "", steps: [], idx: 0, webptUrl: "", status: {}, pausedFrom: "" }; }
 
   /* ---------- Branding ---------- */
   document.querySelectorAll("[data-logo]").forEach((i) => {
@@ -82,7 +82,7 @@
 
   function openSetup() {
     S = freshState();
-    $("firstName").value = ""; $("lastName").value = ""; $("setupError").textContent = "";
+    $("firstName").value = ""; $("lastName").value = ""; $("dob").value = ""; $("setupError").textContent = "";
     $("formChecklist").innerHTML = choices().map((f) => {
       const ready = !!f.url;
       const price = ready && f.priceParam
@@ -105,11 +105,31 @@
     $("setupDone").textContent = chosenIds().includes("webpt") ? "Continue → scan WebPT code" : "Ready — hand to patient";
   }
   $("formChecklist").addEventListener("change", syncSetup);
+  // Setup "Cancel" (and any other [data-go] button) goes back to that screen.
+  document.querySelectorAll("[data-go]").forEach((b) => b.addEventListener("click", () => {
+    if (b.dataset.go === "idle") { S = freshState(); stopScan(); }
+    show(b.dataset.go);
+  }));
+  // DOB: digits only, slashes added as staff type (MM/DD/YYYY).
+  $("dob").addEventListener("input", () => {
+    const d = $("dob").value.replace(/\D/g, "").slice(0, 8);
+    $("dob").value = d.length > 4 ? `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}` : d.length > 2 ? `${d.slice(0, 2)}/${d.slice(2)}` : d;
+  });
+  // "MM/DD/YYYY" -> "YYYY-MM-DD" (what Microsoft Forms accepts), "" if blank, null if invalid.
+  function dobIso(v) {
+    v = v.trim(); if (!v) return "";
+    const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(v); if (!m) return null;
+    const mo = +m[1], d = +m[2], y = +m[3], dt = new Date(y, mo - 1, d);
+    if (dt.getMonth() !== mo - 1 || dt.getDate() !== d || y < 1900 || dt > new Date()) return null;
+    return `${y}-${String(mo).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+  }
 
   $("setupDone").addEventListener("click", () => {
     const first = $("firstName").value.trim(), last = $("lastName").value.trim();
     const chosen = chosenIds();
     if (!first || !last) return ($("setupError").textContent = "Enter the patient's first and last name.");
+    const dob = dobIso($("dob").value);
+    if (dob === null) return ($("setupError").textContent = "Date of birth should look like 04/23/1985 (or leave it blank).");
     if (!chosen.length) return ($("setupError").textContent = "Pick at least one form.");
     const prices = {};
     for (const id of chosen) {
@@ -122,10 +142,10 @@
       }
       prices[id] = v;
     }
-    S.first = first; S.last = last; S.webptUrl = "";
+    S.first = first; S.last = last; S.dob = dob; S.webptUrl = "";
     const forms = C.forms.filter((f) => chosen.includes(f.id));
     S.steps = forms.map((f) => ({ type: "form", id: f.id, title: f.title, url: f.url, minutes: f.minutes || 3,
-      nameParam: f.nameParam || "", priceParam: f.priceParam || "", price: prices[f.id] || "" }));
+      nameParam: f.nameParam || "", dobParam: f.dobParam || "", priceParam: f.priceParam || "", price: prices[f.id] || "" }));
     if (chosen.includes("webpt")) {
       const w = { type: "webpt", id: "webpt", title: WEBPT.title, minutes: WEBPT.minutes };
       C.webpt.position === "last" ? S.steps.push(w) : S.steps.unshift(w);
@@ -221,6 +241,7 @@
                  .split(C.namePlaceholder).join(encodeURIComponent(full));
     const add = (k, v) => { u += (u.includes("?") ? "&" : "?") + encodeURIComponent(k) + "=" + encodeURIComponent(v); };
     if (f.nameParam) add(f.nameParam, full);          // pre-fill by question ID
+    if (f.dobParam && S.dob) add(f.dobParam, S.dob);    // YYYY-MM-DD
     if (f.priceParam && f.price) add(f.priceParam, f.price);
     if (!/[?&]embed=true/.test(u)) add("embed", "true");
     return u;
@@ -262,32 +283,57 @@
   });
 
   /* ---------- WebPT step (patient) ----------
-     WebPT is another website, so it opens on top of this page (new tab / Chrome
-     custom tab). This page stays underneath with a Continue button. If the browser
-     won't open a new tab, it navigates in place and resumes from sessionStorage
-     when the patient comes back (back arrow / swipe back). */
+     mode "frame" (default): WebPT loads inside this page, under the kiosk's own header and
+     Continue button, so finishing never depends on finding a browser ✕ or back arrow.
+     If WebPT won't display in the frame, "Form not showing?" switches to mode "tab":
+     WebPT opens on top of this page and the patient comes back to a Continue screen
+     (state kept in sessionStorage in case the browser reloads this page). */
+  const FRAME = (C.webpt.mode || "frame") === "frame";
   function showWebpt(waiting) {
     $("webptStep").textContent = `Step ${S.idx + 1} of ${S.steps.length}`;
+    $("webptHowBack").innerHTML = FRAME
+      ? "When you finish, tap the blue <strong>Continue</strong> button at the bottom of the screen."
+      : "When you finish, come back to this screen to continue.";
     $("webptIntro").classList.toggle("hidden", !!waiting);
     $("webptWait").classList.toggle("hidden", !waiting);
     show("webpt");
   }
   function saveResume() { try { sessionStorage.setItem("axisResume", JSON.stringify(S)); } catch (_) {} }
   function clearResume() { try { sessionStorage.removeItem("axisResume"); } catch (_) {} }
+  function closeWebptFrame() { $("webptFrame").src = "about:blank"; }
 
-  $("webptGo").addEventListener("click", () => {
+  function openWebptTab() {
+    closeWebptFrame();
     S.status.webpt = "opened";
     saveResume();
     const w = window.open(S.webptUrl, "_blank");
     if (w) { try { w.opener = null; } catch (_) {} showWebpt(true); }
     else location.href = S.webptUrl; // fallback: same tab, resume on return
-  });
+  }
+  function openWebptFrame() {
+    S.status.webpt = "opened";
+    $("wfStep").textContent = `Step ${S.idx + 1} of ${S.steps.length}`;
+    $("wfLoading").classList.remove("hidden");
+    $("webptFrame").src = S.webptUrl;
+    show("webptframe");
+  }
+  $("webptFrame").addEventListener("load", () => { if ($("webptFrame").src !== "about:blank") $("wfLoading").classList.add("hidden"); });
+  $("webptGo").addEventListener("click", () => (FRAME ? openWebptFrame() : openWebptTab()));
   $("webptSkip").addEventListener("click", () => { clearResume(); advance("skipped"); });
   $("webptReopen").addEventListener("click", () => { const w = window.open(S.webptUrl, "_blank"); if (!w) location.href = S.webptUrl; });
   $("webptDone").addEventListener("click", () => { clearResume(); advance("done"); });
   $("webptNotDone").addEventListener("click", async () => {
     const ok = await confirmBox("Move on without finishing?", "Our staff will help you finish your intake.", "Move on", "Go back");
     if (ok) { clearResume(); advance("incomplete"); }
+  });
+  $("wfDone").addEventListener("click", () => { closeWebptFrame(); clearResume(); advance("done"); });
+  $("wfNotDone").addEventListener("click", async () => {
+    const ok = await confirmBox("Move on without finishing?", "Our staff will help you finish your intake.", "Move on", "Go back");
+    if (ok) { closeWebptFrame(); clearResume(); advance("incomplete"); }
+  });
+  $("wfFull").addEventListener("click", async () => {
+    const ok = await confirmBox("Open the intake full screen?", "Your intake will open on top of this page. When you finish, close it to come back here.", "Open full screen", "Stay here");
+    if (ok) openWebptTab();
   });
 
   $("textSize").addEventListener("click", () => {
@@ -307,11 +353,19 @@
   }
   $("resumeBtn").addEventListener("click", () => { const back = S.pausedFrom; S.pausedFrom = ""; show(back); });
   $("resetBtn").addEventListener("click", hardReset);
+  // v9: wipe everything in-page FIRST (so the screen is clean even if the reload below is
+  // blocked or slow), then reload. ?r= forces a fresh load instead of a cached copy.
   function hardReset() {
+    try { clearTimers(); } catch (_) {}
+    try { closeModal(); } catch (_) {}
+    try { stopScan(); } catch (_) {}
     try { sessionStorage.clear(); } catch (_) {}
-    stopScan();
-    $("formFrame").src = "about:blank";
-    location.replace(location.pathname); // full reload wipes everything in memory
+    S = freshState();
+    ["formFrame", "webptFrame"].forEach((id) => { try { $(id).src = "about:blank"; } catch (_) {} });
+    ["firstName", "lastName", "dob", "webptUrl"].forEach((id) => { try { $(id).value = ""; } catch (_) {} });
+    try { $("summaryList").innerHTML = ""; } catch (_) {}
+    try { show("idle"); } catch (_) {}
+    setTimeout(() => { try { location.replace(location.pathname + "?r=" + Date.now()); } catch (_) { location.reload(); } }, 50);
   }
 
   /* ---------- Inactivity ----------
@@ -329,8 +383,9 @@
     if (current === "pin") { idleTimer = setTimeout(() => show(pinReturn), 60000); return; }
     if (STAFF_SCREENS.includes(current)) { idleTimer = setTimeout(() => (S.pausedFrom ? lockNow() : hardReset()), T.staffResetSec * 1000); return; }
     if (!PATIENT_SCREENS.includes(current)) return;
-    const q = current === "form" ? T.formQuestionSec : T.patientQuestionSec;
-    const lockAfter = current === "form" ? T.formQuestionSec + (T.patientLockSec - T.patientQuestionSec) : T.patientLockSec;
+    const inFrame = current === "form" || current === "webptframe"; // taps inside a frame are invisible to this page
+    const q = inFrame ? T.formQuestionSec : T.patientQuestionSec;
+    const lockAfter = inFrame ? T.formQuestionSec + (T.patientLockSec - T.patientQuestionSec) : T.patientLockSec;
     idleTimer = setTimeout(async () => {
       lockTimer = setTimeout(lockNow, (lockAfter - q) * 1000);
       await confirmBox("Are you still there?", "Tap below to keep going.", "I'm still here", "");

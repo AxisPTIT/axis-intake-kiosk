@@ -162,3 +162,12 @@ input:focus { border-color: var(--brand); outline: none; }
 .checklist .fitem { border-bottom: 1px solid #f1ead6; }
 .checklist .fitem:last-child { border-bottom: 0; }
 .checklist .fitem > label { border-bottom: 0; }
+/* v9: WebPT inside the kiosk uses the same compact chrome as form steps */
+#s-webptframe .bar { min-height: 56px; padding: .4rem 1rem; }
+#s-webptframe .logo-sm { height: 34px; }
+#s-webptframe .hint { padding: .3rem 1rem; font-size: .8em; line-height: 1.3; }
+#s-webptframe .progress { height: 5px; }
+#s-webptframe .actions { padding: .45rem 1rem; }
+#s-webptframe .actions .btn { min-height: 48px; padding: .35em 1.3em; font-size: .9em; }
+#s-webptframe .actions .btn.big { font-size: .95em; padding: .35em 1.8em; }
+@media (max-width: 640px) { #s-webptframe .actions.split { flex-direction: row; } #s-webptframe .actions.split .btn { width: auto; } }

@@ -11,7 +11,7 @@
   <link rel="icon" href="icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Jost:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=8">
+  <link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body>
   <div id="offline" class="banner hidden" role="alert">No internet connection. Please let the front desk know.</div>
@@ -43,10 +43,12 @@
       <button class="btn ghost small" data-go="idle">Cancel</button></header>
     <div class="scroll">
       <div class="card">
-        <h3>1. Patient name</h3>
+        <h3>1. Patient</h3>
         <div class="row">
           <label>First name<input id="firstName" autocomplete="off" autocapitalize="words" spellcheck="false"></label>
           <label>Last name<input id="lastName" autocomplete="off" autocapitalize="words" spellcheck="false"></label>
+          <label>Date of birth <small class="muted">(optional, fills every form)</small>
+            <input id="dob" inputmode="numeric" autocomplete="off" placeholder="MM/DD/YYYY" maxlength="10"></label>
         </div>
       </div>
       <div class="card">
@@ -123,7 +125,7 @@
       <p class="step-pill" id="webptStep"></p>
       <div id="webptIntro">
         <h1>Your patient <em>intake</em></h1>
-        <p class="lead">This opens your WebPT intake form. You'll enter your <strong>date of birth</strong> to start.<br>When you finish, come back to this screen to continue.</p>
+        <p class="lead">This opens your WebPT intake form. You'll enter your <strong>date of birth</strong> to start.<br><span id="webptHowBack">When you finish, tap the blue <strong>Continue</strong> button at the bottom of the screen.</span></p>
         <div class="stack">
           <button class="btn primary big" id="webptGo">Open my intake form</button>
           <button class="btn ghost" id="webptSkip">Skip for now</button>
@@ -139,6 +141,26 @@
         </div>
       </div>
     </div>
+  </section>
+
+  <!-- 6b. WebPT shown inside the kiosk (webpt.mode "frame"). The kiosk's own buttons stay
+       on screen the whole time, so there is always one obvious way out. -->
+  <section id="s-webptframe" class="screen" aria-label="WebPT intake">
+    <header class="bar">
+      <img class="logo-sm" data-logo alt="">
+      <div class="title"><span class="step" id="wfStep"></span><strong>Patient intake (WebPT)</strong></div>
+      <button class="btn ghost small" id="wfFull">Form not showing?</button>
+    </header>
+    <p class="hint">Finish your intake below. When WebPT says you're done, tap <strong>I've finished — continue</strong>.</p>
+    <div class="frame-wrap">
+      <div class="loading" id="wfLoading"><div class="spinner"></div><p>Loading your intake…</p></div>
+      <iframe id="webptFrame" title="WebPT intake" referrerpolicy="no-referrer" credentialless
+        allow="camera; clipboard-write"></iframe>
+    </div>
+    <footer class="actions split">
+      <button class="btn ghost" id="wfNotDone">I couldn't finish it</button>
+      <button class="btn primary big" id="wfDone">I've finished — continue →</button>
+    </footer>
   </section>
 
   <!-- 7. Done -->
@@ -190,7 +212,7 @@
     </div>
   </div>
 
-  <script src="config.js?v=8"></script>
-  <script src="app.js?v=8"></script>
+  <script src="config.js?v=9"></script>
+  <script src="app.js?v=9"></script>
 </body>
 </html>
