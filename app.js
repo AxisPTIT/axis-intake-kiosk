@@ -336,19 +336,19 @@
     if (ok) openWebptTab();
   });
 
-  // v11: whole-form zoom (A− / A+). The frame is drawn narrower and scaled up from the
-// top-left corner, so Microsoft Forms reflows to the smaller width instead of being clipped.
-const ZOOMS = [1, 1.15, 1.3, 1.5]; let zoomIdx = 0;
+  // v12: one "Enlarge" toggle (100% <-> 130%). The frame is drawn narrower and scaled up
+// from the top-left corner, so Microsoft Forms reflows to the smaller width instead of being clipped.
+const ZOOM = 1.3; let zoomed = false;
 function applyZoom() {
-const z = ZOOMS[zoomIdx], f = $("formFrame");
+const z = zoomed ? ZOOM : 1, f = $("formFrame");
 f.style.transformOrigin = "0 0";
 f.style.width = f.style.height = (100 / z) + "%";
 f.style.transform = z === 1 ? "" : "scale(" + z + ")";
-$("zoomOut").disabled = zoomIdx === 0;
-$("zoomIn").disabled = zoomIdx === ZOOMS.length - 1;
+$("zoomBtn").textContent = zoomed ? "Normal size" : "Enlarge";
+$("zoomBtn").setAttribute("aria-pressed", String(zoomed));
 }
-$("zoomIn").addEventListener("click", () => { if (zoomIdx < ZOOMS.length - 1) { zoomIdx++; applyZoom(); } });
-$("zoomOut").addEventListener("click", () => { if (zoomIdx > 0) { zoomIdx--; applyZoom(); } });
+$("zoomBtn").addEventListener("click", () => { zoomed = !zoomed; applyZoom(); });
+applyZoom(); } });
 applyZoom();
 
   /* ---------- Staff summary / unlock / reset ---------- */
