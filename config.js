@@ -51,7 +51,23 @@ window.KIOSK_CONFIG = {
     { id: "wellness", title: "Wellness Program Intake", desc: "Wellness program patients",
       minutes: 5, url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=K_j3YfnYNkuP-lOlrjcwegvi4db-qHVOrSDQtYnWAY5UOVhaTjgxSko5SFMxMkhJMkVCUDdLQVNHVy4u",
       nameParam: "rdef9c886399a44c09ea6b4078fe608f2", dobParam: "rf2646f684ed04de2ad1587f7708791cc",
-      priceParam: "rfa4a7133c281406db346d011cf242eac", pricePrompt: "Cost per visit", checkedByDefault: false }
+      priceParam: "rfa4a7133c281406db346d011cf242eac", pricePrompt: "Cost per visit", checkedByDefault: false },
+    /* Outcome questionnaires (added Nov 20, 2026). Scores are calculated by the Intake PDF flows. */
+    { id: "dhi", title: "Dizziness Handicap Inventory (DHI)", desc: "Dizziness / balance patients",
+      minutes: 5, url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=K_j3YfnYNkuP-lOlrjcwegvi4db-qHVOrSDQtYnWAY5URVFGV1hOQ1NKSzRFOEcwVUNTUUVMSEg4RC4u",
+      nameParam: "r175244b7476241d595f2444a3360a344", dobParam: "re69863745c614210868accbf8fffee94", checkedByDefault: false },
+    { id: "lefs", title: "Lower Extremity Functional Scale (LEFS)", desc: "Hip, knee, ankle or foot problems",
+      minutes: 4, url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=K_j3YfnYNkuP-lOlrjcwegvi4db-qHVOrSDQtYnWAY5UNExNSzhQOVg1NEQwRElTM0pOSE44MzFVMy4u",
+      nameParam: "ra8fe6aeb29294a2ab9141319bf991be0", dobParam: "rddd527443fe64276bf510aae9f506955", checkedByDefault: false },
+    { id: "cpsi", title: "NIH-CPSI (Chronic Prostatitis Symptom Index)", desc: "Male pelvic pain / prostatitis symptoms",
+      minutes: 3, url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=K_j3YfnYNkuP-lOlrjcwegvi4db-qHVOrSDQtYnWAY5UMEM4MkZVOVkySkM4QTVaM0VLWTMxNzdRRy4u",
+      nameParam: "rbe363f09c24e4e5eaee8715873adee5e", dobParam: "rf35615e5aa5a45069e94a3962cc818fe", checkedByDefault: false },
+    { id: "pfdi", title: "Pelvic Floor Disability Index (PFDI-20)", desc: "Bladder, bowel or prolapse symptoms",
+      minutes: 5, url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=K_j3YfnYNkuP-lOlrjcwegvi4db-qHVOrSDQtYnWAY5UM0VHMUZCRUcySDNNTlhEQ0JNU0JWSUJBSi4u",
+      nameParam: "r7f01c7afc7d54b58b309db0bff5078fc", dobParam: "re647062271d340ef850712c547f9d296", checkedByDefault: false },
+    { id: "quickdash", title: "QuickDASH", desc: "Arm, shoulder or hand problems",
+      minutes: 3, url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=K_j3YfnYNkuP-lOlrjcwegvi4db-qHVOrSDQtYnWAY5URjNMNEo1Vlc4MEdBMkcxMENGWFRHODRLNy4u",
+      nameParam: "r96fcc20a89d1450488be54dc97ef4cf7", dobParam: "r2d6b30668d414261bc251cb6546a0a40", checkedByDefault: false }
   ],
 
   /* WebPT Reach kiosk-mode intake (QR/URL from the patient's Reach chart).
