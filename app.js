@@ -348,7 +348,6 @@ $("zoomBtn").textContent = zoomed ? "Normal size" : "Enlarge";
 $("zoomBtn").setAttribute("aria-pressed", String(zoomed));
 }
 $("zoomBtn").addEventListener("click", () => { zoomed = !zoomed; applyZoom(); });
-applyZoom(); } });
 applyZoom();
 
   /* ---------- Staff summary / unlock / reset ---------- */
