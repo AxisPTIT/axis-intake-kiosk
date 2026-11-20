@@ -11,7 +11,7 @@
   <link rel="icon" href="icon-192.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;1,500&family=Jost:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=9">
+  <link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body>
   <div id="offline" class="banner hidden" role="alert">No internet connection. Please let the front desk know.</div>
@@ -103,7 +103,7 @@
     <header class="bar">
       <img class="logo-sm" data-logo alt="">
       <div class="title"><span class="step" id="stepLabel"></span><strong id="formTitle"></strong></div>
-      <button class="btn secondary small" id="textSize">Enlarge text</button>
+      <div class="zoom" role="group" aria-label="Text size"><button class="btn secondary small" id="zoomOut" aria-label="Smaller text">A−</button><button class="btn secondary small" id="zoomIn" aria-label="Larger text">A+</button></div>
     </header>
     <div class="progress" aria-hidden="true"><div id="progressFill"></div></div>
     <p class="hint">Use the form's own <strong>Next</strong> buttons to move through it, tap <strong>Submit</strong> at the end, then tap <strong>Done with this form</strong>.</p>
@@ -212,7 +212,7 @@
     </div>
   </div>
 
-  <script src="config.js?v=9"></script>
-  <script src="app.js?v=9"></script>
+  <script src="config.js?v=11"></script>
+  <script src="app.js?v=11"></script>
 </body>
 </html>
