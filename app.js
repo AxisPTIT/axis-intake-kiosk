@@ -336,10 +336,20 @@
     if (ok) openWebptTab();
   });
 
-  $("textSize").addEventListener("click", () => {
-    const big = document.documentElement.classList.toggle("large");
-    $("textSize").textContent = big ? "Normal text" : "Enlarge text";
-  });
+  // v11: whole-form zoom (A− / A+). The frame is drawn narrower and scaled up from the
+// top-left corner, so Microsoft Forms reflows to the smaller width instead of being clipped.
+const ZOOMS = [1, 1.15, 1.3, 1.5]; let zoomIdx = 0;
+function applyZoom() {
+const z = ZOOMS[zoomIdx], f = $("formFrame");
+f.style.transformOrigin = "0 0";
+f.style.width = f.style.height = (100 / z) + "%";
+f.style.transform = z === 1 ? "" : "scale(" + z + ")";
+$("zoomOut").disabled = zoomIdx === 0;
+$("zoomIn").disabled = zoomIdx === ZOOMS.length - 1;
+}
+$("zoomIn").addEventListener("click", () => { if (zoomIdx < ZOOMS.length - 1) { zoomIdx++; applyZoom(); } });
+$("zoomOut").addEventListener("click", () => { if (zoomIdx > 0) { zoomIdx--; applyZoom(); } });
+applyZoom();
 
   /* ---------- Staff summary / unlock / reset ---------- */
   function openSummary() {
