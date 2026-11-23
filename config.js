@@ -73,7 +73,13 @@ window.KIOSK_CONFIG = {
       nameParam: "r96fcc20a89d1450488be54dc97ef4cf7", dobParam: "r2d6b30668d414261bc251cb6546a0a40", checkedByDefault: false },
     { id: "pcss", title: "Post Concussion Symptom Scale (PCSS)", desc: "Concussion symptoms",
       minutes: 4, url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=K_j3YfnYNkuP-lOlrjcwegvi4db-qHVOrSDQtYnWAY5URU9PVEo0UlkwMUpaWkE5V0lNQ0ZMTFBLUi4u",
-      nameParam: "r96fcc20a89d1450488be54dc97ef4cf7", dobParam: "r2d6b30668d414261bc251cb6546a0a40", checkedByDefault: false }
+      nameParam: "r96fcc20a89d1450488be54dc97ef4cf7", dobParam: "r2d6b30668d414261bc251cb6546a0a40", checkedByDefault: false },
+     { id: "ndi", title: "Neck Disability Index (NDI)", desc: "Neck pain and daily activities",
+            minutes: 4, url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=K_j3YfnYNkuP-lOlrjcwegvi4db-qHVOrSDQtYnWAY5UNzg5MlU3SE0zR0VYNlBGUE1ZRVlXQlVISy4u",
+            nameParam: "r96fcc20a89d1450488be54dc97ef4cf7", dobParam: "r2d6b30668d414261bc251cb6546a0a40", checkedByDefault: false },
+     { id: "mges", title: "Modified Gait Efficacy Scale (mGES)", desc: "Walking confidence / gait concerns",
+            minutes: 4, url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=K_j3YfnYNkuP-lOlrjcwegvi4db-qHVOrSDQtYnWAY5UM0lIN0dCOUNCQU1WUk4wUkZaQlZUUDdPUi4u",
+            nameParam: "r96fcc20a89d1450488be54dc97ef4cf7", dobParam: "r2d6b30668d414261bc251cb6546a0a40", checkedByDefault: false }
   ],
 
   /* WebPT Reach kiosk-mode intake (QR/URL from the patient's Reach chart).
