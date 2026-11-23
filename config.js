@@ -67,6 +67,12 @@ window.KIOSK_CONFIG = {
       nameParam: "r7f01c7afc7d54b58b309db0bff5078fc", dobParam: "re647062271d340ef850712c547f9d296", checkedByDefault: false },
     { id: "quickdash", title: "QuickDASH", desc: "Arm, shoulder or hand problems",
       minutes: 3, url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=K_j3YfnYNkuP-lOlrjcwegvi4db-qHVOrSDQtYnWAY5URjNMNEo1Vlc4MEdBMkcxMENGWFRHODRLNy4u",
+      nameParam: "r96fcc20a89d1450488be54dc97ef4cf7", dobParam: "r2d6b30668d414261bc251cb6546a0a40", checkedByDefault: false },
+    { id: "odi", title: "Modified Oswestry Disability Index (ODI)", desc: "Low back pain and daily activities",
+      minutes: 4, url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=K_j3YfnYNkuP-lOlrjcwegvi4db-qHVOrSDQtYnWAY5UNklBWjVRWkM1TFpHUk82UVBTQjlESTZUWi4u",
+      nameParam: "r96fcc20a89d1450488be54dc97ef4cf7", dobParam: "r2d6b30668d414261bc251cb6546a0a40", checkedByDefault: false },
+    { id: "pcss", title: "Post Concussion Symptom Scale (PCSS)", desc: "Concussion symptoms",
+      minutes: 4, url: "https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=K_j3YfnYNkuP-lOlrjcwegvi4db-qHVOrSDQtYnWAY5URU9PVEo0UlkwMUpaWkE5V0lNQ0ZMTFBLUi4u",
       nameParam: "r96fcc20a89d1450488be54dc97ef4cf7", dobParam: "r2d6b30668d414261bc251cb6546a0a40", checkedByDefault: false }
   ],
 
