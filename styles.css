@@ -97,6 +97,9 @@ input:focus { border-color: var(--brand); outline: none; }
 .pin-dots { display: flex; gap: 14px; justify-content: center; margin: 1rem 0; min-height: 24px; }
 .pin-dots span { width: 20px; height: 20px; border-radius: 50%; background: var(--accent); }
 .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 1rem 0 1.5rem; }
+/* v15: wider staff PIN keypad */
+#s-pin .center.narrow { max-width: 680px; width: 100%; }
+#s-pin .keypad { gap: 14px; }
 .keypad button { font: inherit; font-size: 1.4em; min-height: 76px; border-radius: var(--radius); border: 1px solid var(--line);
   background: var(--card); touch-action: manipulation; }
 .keypad button:active { background: #f5f0e0; }
